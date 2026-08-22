@@ -1,8 +1,15 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache ffmpeg
+# Install FFmpeg and Python
+RUN apk add --no-cache ffmpeg python3 py3-pip
 
+# Install n8n
 RUN npm install -g n8n@1.95.0
+
+# Enable Execute Command and Code nodes
+ENV N8N_RUNNERS_ENABLED=true
+ENV EXECUTE_COMMAND_ENABLED=true
+ENV NODE_FUNCTION_ALLOW_EXTERNAL=true
 
 WORKDIR /app
 
