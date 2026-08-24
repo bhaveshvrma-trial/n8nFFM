@@ -1,21 +1,22 @@
-FROM node:20-alpine
+FROM node:22-bookworm-slim
 
-# Install FFmpeg and Python
-RUN apk add --no-cache ffmpeg python3 py3-pip
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        python3 \
+        python3-pip \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install n8n
-RUN npm install -g n8n@2.35.7
+RUN npm install -g n8n@2.35.7 --unsafe-perm
 
-# Enable Execute Command and Code nodes
-ENV N8N_RUNNERS_ENABLED=true
-ENV EXECUTE_COMMAND_ENABLED=true
-ENV NODE_FUNCTION_ALLOW_EXTERNAL=true
+# Re-enable Execute Command (needed to shell out to ffmpeg) — n8n 2.x disables it by default
+ENV NODES_EXCLUDE=[]
 
+# Only if you actually need external npm modules inside Code nodes:
+# ENV NODE_FUNCTION_ALLOW_EXTERNAL=your,module,names
+
+ENV N8N_PROTOCOL=http
 WORKDIR /app
-
-ENV N8N_HOST=0.0.0.0
-ENV N8N_PORT=5678
-
 EXPOSE 5678
-
-CMD ["n8n", "start"]
+CMD ["sh", "-c", "n8n start --port ${PORT:-5678}"]
